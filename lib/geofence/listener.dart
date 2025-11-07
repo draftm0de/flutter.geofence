@@ -19,8 +19,8 @@ class DraftModeGeofenceListener {
   final double centerLat;
   final double centerLng;
   final double radiusMeters;
-  final Future<void> Function() onEnter;
-  final Future<void> Function() onExit;
+  final Future<bool> Function(DraftModeGeofenceEvent event) onEnter;
+  final Future<bool> Function(DraftModeGeofenceEvent event) onExit;
   final DraftModeGeofenceNotifier? notifier;
 
   StreamSubscription<Position>? _sub;

@@ -3,8 +3,8 @@
 Lightweight building blocks for adding a single circular geofence to a Flutter
 app. The module is split into a `DraftModeGeofenceListener` (produces enter/exit
 stream events), a `DraftModeGeofenceController` (persists state + orchestrates
-callbacks), and optional UI helpers (`DraftModeGeofenceNotifier` and
-`DraftModeGeofenceConfirm`).
+callbacks), and an optional UI helper (`DraftModeGeofenceNotifier`) for showing
+movement confirmations.
 
 ## Typical Flow
 

@@ -1,11 +1,10 @@
-import '../notifier.dart';
 import 'entity.dart';
 
 /// Shared logic that decides if a new tracking cycle should start after reading
 /// the last persisted geofence state.
 bool shouldStartTracking({
   required DraftModeGeofenceStateEntity? lastState,
-  required DraftModeGeofenceNotifier? notifier,
+  required int? expireUnapprovedMinutes,
   DateTime? now,
 }) {
   if (lastState == null) return true;
@@ -16,10 +15,9 @@ bool shouldStartTracking({
 
   if (lastState.approved) return true;
 
-  if (notifier == null) return true;
+  if (expireUnapprovedMinutes == null) return true;
 
-  final expireMinutes = notifier.expireStateMinutes;
   final referenceTime = now ?? DateTime.now();
   final diffMinutes = referenceTime.difference(lastState.eventDate).inMinutes;
-  return diffMinutes > expireMinutes;
+  return diffMinutes > expireUnapprovedMinutes;
 }
