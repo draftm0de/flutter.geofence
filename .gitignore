@@ -1,0 +1,7 @@
+/.idea/
+!/.git/hooks/pre-commit
+/build/
+/.dart_tool/
+/doc/api/
+coverage/html/
+coverage/lcov.info
