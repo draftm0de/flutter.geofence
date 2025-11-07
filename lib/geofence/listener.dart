@@ -27,6 +27,10 @@ class DraftModeGeofenceListener {
   final _controller = StreamController<DraftModeGeofenceEvent>.broadcast();
   bool? _isInside; // unknown at start
 
+  /// [onEnter] and [onExit] must return whether the consumer approved the
+  /// movement (for example after prompting the user). Returning `false` keeps
+  /// the controller's persisted state pending so another exit cannot be
+  /// confirmed until the timeout passes.
   DraftModeGeofenceListener({
     required this.centerLat,
     required this.centerLng,

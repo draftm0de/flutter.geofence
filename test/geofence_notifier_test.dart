@@ -56,12 +56,16 @@ void main() {
       _exitEvent(),
       title: 'Confirm exit',
       message: 'Leave geofence?',
+      confirmLabel: 'Allow',
+      cancelLabel: 'Stay',
     );
 
     await tester.pumpAndSettle();
     expect(find.text('Confirm exit'), findsOneWidget);
+    expect(find.text('Allow'), findsOneWidget);
+    expect(find.text('Stay'), findsOneWidget);
 
-    await tester.tap(find.text('Yes'));
+    await tester.tap(find.text('Allow'));
     await tester.pumpAndSettle();
 
     expect(await confirmFuture, isTrue);
