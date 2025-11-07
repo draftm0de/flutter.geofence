@@ -32,6 +32,12 @@ class DraftModeGeofenceController {
   }
 
   /// Starts tracking and reacts to enter/exit events from the listener.
+  ///
+  /// The provided listener callbacks must resolve to `true` when the
+  /// application confirms the movement (e.g. after a dialog) so the controller
+  /// knows whether to persist the approved state. Returning `false` records the
+  /// transition as pending and prevents duplicate enter notifications until the
+  /// grace window (see [shouldStartTracking]) expires.
   Future<void> startGeofence() async {
     logger.notice("geofenceController:startGeofence with lng:${_listener.centerLng}, lat:${_listener.centerLat}");
     await _listener.start(

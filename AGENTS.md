@@ -52,7 +52,7 @@ This file captures conventions and guardrails for automated contributors.
   compatibility.
 
 # User interactions
-- The user is allowed to modify source code, which can influent the tests. 
+- The user is allowed to modify source code, which can influent the tests.
 - In case of recognizing modifications ask before reverting to match the current cached sources.
 
 Update this guide whenever new conventions emerge so automated agents stay in

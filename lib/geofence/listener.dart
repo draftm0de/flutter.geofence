@@ -27,6 +27,10 @@ class DraftModeGeofenceListener {
   final _controller = StreamController<DraftModeGeofenceEvent>.broadcast();
   bool? _isInside; // unknown at start
 
+  /// [onEnter] and [onExit] must return whether the consumer approved the
+  /// movement (for example after prompting the user). Returning `false` keeps
+  /// the controller's persisted state pending so another exit cannot be
+  /// confirmed until the timeout passes.
   DraftModeGeofenceListener({
     required this.centerLat,
     required this.centerLng,
@@ -69,7 +73,7 @@ class DraftModeGeofenceListener {
           centerLat,
           centerLng,
         ) <=
-        radiusMeters;
+            radiusMeters;
 
     // Listen for movement
     final settings = LocationSettings(
@@ -80,11 +84,11 @@ class DraftModeGeofenceListener {
     );
 
     _sub = Geolocator.getPositionStream(locationSettings: settings).listen((
-      pos,
-    ) {
+        pos,
+        ) {
       final inside =
           _distanceMeters(pos.latitude, pos.longitude, centerLat, centerLng) <=
-          radiusMeters;
+              radiusMeters;
 
       if (_isInside == null) {
         _isInside = inside;
@@ -124,9 +128,9 @@ class DraftModeGeofenceListener {
     final dLon = _deg2rad(lon2 - lon1);
     final a =
         (sin(dLat / 2) * sin(dLat / 2)) +
-        cos(_deg2rad(lat1)) *
-            cos(_deg2rad(lat2)) *
-            (sin(dLon / 2) * sin(dLon / 2));
+            cos(_deg2rad(lat1)) *
+                cos(_deg2rad(lat2)) *
+                (sin(dLon / 2) * sin(dLon / 2));
     final c = 2 * asin(sqrt(a));
     return R * c;
   }

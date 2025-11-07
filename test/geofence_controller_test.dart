@@ -105,7 +105,6 @@ class TestDraftModeGeofenceListener extends DraftModeGeofenceListener {
           radiusMeters: 5,
           onEnter: onEnter,
           onExit: onExit,
-          notifier: notifier,
         );
 
   @override
