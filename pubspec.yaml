@@ -16,6 +16,8 @@ dependencies:
   intl: ^0.20.2
   shared_preferences: ^2.5.3
   geolocator: ^14.0.2
+  draftmode_ui:
+    path: ../ui
 flutter:
   generate: true
   uses-material-design: true

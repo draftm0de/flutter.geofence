@@ -19,8 +19,8 @@ class DraftModeGeofenceListener {
   final double centerLat;
   final double centerLng;
   final double radiusMeters;
-  final Future<void> Function() onEnter;
-  final Future<void> Function() onExit;
+  final Future<bool> Function(DraftModeGeofenceEvent event) onEnter;
+  final Future<bool> Function(DraftModeGeofenceEvent event) onExit;
   final DraftModeGeofenceNotifier? notifier;
 
   StreamSubscription<Position>? _sub;
@@ -69,7 +69,7 @@ class DraftModeGeofenceListener {
           centerLat,
           centerLng,
         ) <=
-        radiusMeters;
+            radiusMeters;
 
     // Listen for movement
     final settings = LocationSettings(
@@ -80,11 +80,11 @@ class DraftModeGeofenceListener {
     );
 
     _sub = Geolocator.getPositionStream(locationSettings: settings).listen((
-      pos,
-    ) {
+        pos,
+        ) {
       final inside =
           _distanceMeters(pos.latitude, pos.longitude, centerLat, centerLng) <=
-          radiusMeters;
+              radiusMeters;
 
       if (_isInside == null) {
         _isInside = inside;
@@ -124,9 +124,9 @@ class DraftModeGeofenceListener {
     final dLon = _deg2rad(lon2 - lon1);
     final a =
         (sin(dLat / 2) * sin(dLat / 2)) +
-        cos(_deg2rad(lat1)) *
-            cos(_deg2rad(lat2)) *
-            (sin(dLon / 2) * sin(dLon / 2));
+            cos(_deg2rad(lat1)) *
+                cos(_deg2rad(lat2)) *
+                (sin(dLon / 2) * sin(dLon / 2));
     final c = 2 * asin(sqrt(a));
     return R * c;
   }

@@ -1,12 +1,7 @@
-import 'dart:async';
-
-import 'package:draftmode_geofence/geofence/confirm.dart';
 import 'package:draftmode_geofence/geofence/controller.dart';
 import 'package:draftmode_geofence/geofence/listener.dart';
-import 'package:draftmode_geofence/geofence/notifier.dart';
 import 'package:draftmode_geofence/geofence/state/entity.dart';
 import 'package:draftmode_geofence/geofence/state/storage.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,8 +17,14 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     callLog = [];
     listener = TestDraftModeGeofenceListener(
-      onEnter: () async => callLog.add('enter'),
-      onExit: () async => callLog.add('exit'),
+      onEnter: (_) async {
+        callLog.add('enter');
+        return true;
+      },
+      onExit: (_) async {
+        callLog.add('exit');
+        return true;
+      },
     );
     controller = DraftModeGeofenceController(listener: listener);
   });
@@ -67,21 +68,16 @@ void main() {
     expect(stored.approved, isTrue);
   });
 
-  test('exit with notifier requires confirmation (not granted)', () async {
-    final notifier = DraftModeGeofenceNotifier(
-      navigatorKey: GlobalKey<NavigatorState>(),
-      isAppInForeground: () => true,
-      isMounted: () => true,
-      confirmDialog: DraftModeGeofenceConfirm(
-        title: 'Confirm',
-        message: 'Exit?',
-      ),
-      expireStateMinutes: 1,
-    );
+  test('exit records pending approval when callback declines', () async {
     listener = TestDraftModeGeofenceListener(
-      onEnter: () async => callLog.add('enter'),
-      onExit: () async => callLog.add('exit'),
-      notifier: notifier,
+      onEnter: (_) async {
+        callLog.add('enter');
+        return true;
+      },
+      onExit: (_) async {
+        callLog.add('exit_attempt');
+        return false;
+      },
     );
     controller = DraftModeGeofenceController(listener: listener);
 
@@ -89,7 +85,7 @@ void main() {
     listener.emitExit();
     await Future<void>.delayed(Duration.zero);
 
-    expect(callLog, isEmpty);
+    expect(callLog, ['exit_attempt']);
     final stored = await DraftModeGeofenceStateStorage().read();
     expect(stored, isNotNull);
     expect(stored!.state, DraftModeGeofenceStateEntity.stateExit);
@@ -99,16 +95,14 @@ void main() {
 
 class TestDraftModeGeofenceListener extends DraftModeGeofenceListener {
   TestDraftModeGeofenceListener({
-    required Future<void> Function() onEnter,
-    required Future<void> Function() onExit,
-    DraftModeGeofenceNotifier? notifier,
+    required Future<bool> Function(DraftModeGeofenceEvent event) onEnter,
+    required Future<bool> Function(DraftModeGeofenceEvent event) onExit,
   }) : super(
           centerLat: 0,
           centerLng: 0,
           radiusMeters: 5,
           onEnter: onEnter,
           onExit: onExit,
-          notifier: notifier,
         );
 
   @override
