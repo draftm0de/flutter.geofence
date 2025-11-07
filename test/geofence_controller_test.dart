@@ -1,5 +1,6 @@
 import 'package:draftmode_geofence/geofence/controller.dart';
 import 'package:draftmode_geofence/geofence/listener.dart';
+import 'package:draftmode_geofence/geofence/notifier.dart';
 import 'package:draftmode_geofence/geofence/state/entity.dart';
 import 'package:draftmode_geofence/geofence/state/storage.dart';
 import 'package:flutter_test/flutter_test.dart';

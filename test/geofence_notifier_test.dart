@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 
-DraftModeGeofenceEvent _event() {
+DraftModeGeofenceEvent _exitEvent() {
   final position = Position(
     latitude: 0,
     longitude: 0,
@@ -23,8 +23,7 @@ DraftModeGeofenceEvent _event() {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('confirmMovement auto-approves when dialog cannot be shown',
-      (tester) async {
+  test('confirmMovement auto-approves when dialog cannot be shown', () async {
     final notifier = DraftModeGeofenceNotifier(
       navigatorKey: GlobalKey<NavigatorState>(),
       isAppInForeground: () => false,
@@ -32,16 +31,15 @@ void main() {
     );
 
     final result = await notifier.confirmMovement(
-      _event(),
+      _exitEvent(),
       title: 'Confirm exit',
-      message: 'Leave the fence?',
+      message: 'Leave geofence?',
     );
 
     expect(result, isTrue);
   });
 
-  testWidgets('confirmMovement surfaces dialog choice when foreground',
-      (tester) async {
+  testWidgets('confirmMovement uses dialog result when foreground', (tester) async {
     final navigatorKey = GlobalKey<NavigatorState>();
     await tester.pumpWidget(MaterialApp(
       navigatorKey: navigatorKey,
@@ -55,9 +53,9 @@ void main() {
     );
 
     final confirmFuture = notifier.confirmMovement(
-      _event(),
+      _exitEvent(),
       title: 'Confirm exit',
-      message: 'Leave the fence?',
+      message: 'Leave geofence?',
     );
 
     await tester.pumpAndSettle();
