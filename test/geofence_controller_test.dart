@@ -68,7 +68,7 @@ void main() {
     expect(stored.approved, isTrue);
   });
 
-  test('exit records pending approval when callback declines', () async {
+  test('exit with notifier requires confirmation (not granted)', () async {
     listener = TestDraftModeGeofenceListener(
       onEnter: (_) async {
         callLog.add('enter');
@@ -97,6 +97,7 @@ class TestDraftModeGeofenceListener extends DraftModeGeofenceListener {
   TestDraftModeGeofenceListener({
     required Future<bool> Function(DraftModeGeofenceEvent event) onEnter,
     required Future<bool> Function(DraftModeGeofenceEvent event) onExit,
+    DraftModeGeofenceNotifier? notifier,
   }) : super(
           centerLat: 0,
           centerLng: 0,

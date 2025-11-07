@@ -18,8 +18,8 @@ class DraftModeGeofenceController {
     LocationAccuracy? accuracy,
     int? expireUnapprovedMinutes
   }) : _listener = listener,
-        _accuracy = accuracy ?? LocationAccuracy.best,
-        _expireUnapprovedMinutes = expireUnapprovedMinutes ?? 60
+       _accuracy = accuracy ?? LocationAccuracy.best,
+       _expireUnapprovedMinutes = expireUnapprovedMinutes ?? 60
   ;
 
   DraftModeLogger logger = DraftModeLogger(false);

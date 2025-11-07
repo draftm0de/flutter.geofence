@@ -1,6 +1,6 @@
 name: draftmode_geofence
 description: Geofence.
-version: 0.0.1
+version: 1.0.0+1
 publish_to: "none" # So it doesn't accidentally get published
 
 environment:

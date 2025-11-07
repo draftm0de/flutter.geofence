@@ -16,20 +16,20 @@ class DraftModeGeofenceNotifier {
     required bool Function() isMounted,
     int? expireStateMinutes,
   }) :
-        _navigatorKey = navigatorKey,
-        _isAppInForeground = isAppInForeground,
-        _isMounted = isMounted,
-        expireStateMinutes = expireStateMinutes ?? 2
+    _navigatorKey = navigatorKey,
+    _isAppInForeground = isAppInForeground,
+    _isMounted = isMounted,
+    expireStateMinutes = expireStateMinutes ?? 2
   ;
 
   static bool get isIOS => defaultTargetPlatform == TargetPlatform.iOS;
 
   Future<bool> confirmMovement(
-      DraftModeGeofenceEvent event, {
-        required String title,
-        required String message,
-        Duration? autoConfirmAfter,
-      }) async {
+    DraftModeGeofenceEvent event, {
+    required String title,
+    required String message,
+    Duration? autoConfirmAfter,
+  }) async {
     final BuildContext? context = await getBuildContext();
     if (!_canShowForegroundDialog(context)) {
       final movement = event.entering ? 'enter' : 'exit';
