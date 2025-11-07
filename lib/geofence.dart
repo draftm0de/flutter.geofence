@@ -1,4 +1,3 @@
-export 'geofence/confirm.dart';
 export 'geofence/controller.dart';
 export 'geofence/listener.dart';
 export 'geofence/notifier.dart';

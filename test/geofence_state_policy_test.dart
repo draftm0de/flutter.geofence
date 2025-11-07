@@ -1,28 +1,12 @@
-import 'package:draftmode_geofence/geofence/confirm.dart';
-import 'package:draftmode_geofence/geofence/notifier.dart';
 import 'package:draftmode_geofence/geofence/state/entity.dart';
 import 'package:draftmode_geofence/geofence/state/policy.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  DraftModeGeofenceNotifier buildNotifier({int expireMinutes = 2}) {
-    return DraftModeGeofenceNotifier(
-      navigatorKey: GlobalKey<NavigatorState>(),
-      isAppInForeground: () => true,
-      isMounted: () => true,
-      confirmDialog: DraftModeGeofenceConfirm(
-        title: 'Confirm exit',
-        message: 'Leave geofence?',
-      ),
-      expireStateMinutes: expireMinutes,
-    );
-  }
-
   group('shouldStartTracking', () {
     test('returns true when no prior state exists', () {
       expect(
-        shouldStartTracking(lastState: null, notifier: buildNotifier()),
+        shouldStartTracking(lastState: null, expireUnapprovedMinutes: 2),
         isTrue,
       );
     });
@@ -34,7 +18,10 @@ void main() {
       );
 
       expect(
-        shouldStartTracking(lastState: lastState, notifier: buildNotifier()),
+        shouldStartTracking(
+          lastState: lastState,
+          expireUnapprovedMinutes: 2,
+        ),
         isFalse,
       );
     });
@@ -47,12 +34,15 @@ void main() {
       );
 
       expect(
-        shouldStartTracking(lastState: lastState, notifier: buildNotifier()),
+        shouldStartTracking(
+          lastState: lastState,
+          expireUnapprovedMinutes: 2,
+        ),
         isTrue,
       );
     });
 
-    test('returns true when exit pending but notifier missing', () {
+    test('returns true when exit pending but expiry disabled', () {
       final lastState = DraftModeGeofenceStateEntity(
         eventDate: DateTime.now(),
         state: DraftModeGeofenceStateEntity.stateExit,
@@ -60,7 +50,7 @@ void main() {
       );
 
       expect(
-        shouldStartTracking(lastState: lastState, notifier: null),
+        shouldStartTracking(lastState: lastState, expireUnapprovedMinutes: null),
         isTrue,
       );
     });
@@ -75,7 +65,7 @@ void main() {
       expect(
         shouldStartTracking(
           lastState: lastState,
-          notifier: buildNotifier(expireMinutes: 5),
+          expireUnapprovedMinutes: 5,
           now: DateTime.now(),
         ),
         isFalse,
@@ -93,7 +83,7 @@ void main() {
       expect(
         shouldStartTracking(
           lastState: lastState,
-          notifier: buildNotifier(expireMinutes: 5),
+          expireUnapprovedMinutes: 5,
           now: referenceTime,
         ),
         isTrue,
@@ -110,7 +100,7 @@ void main() {
       expect(
         shouldStartTracking(
           lastState: lastState,
-          notifier: buildNotifier(expireMinutes: 5),
+          expireUnapprovedMinutes: 5,
         ),
         isTrue,
       );
