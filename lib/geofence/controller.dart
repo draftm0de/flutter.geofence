@@ -16,11 +16,10 @@ class DraftModeGeofenceController {
   DraftModeGeofenceController({
     required DraftModeGeofenceListener listener,
     LocationAccuracy? accuracy,
-    int? expireUnapprovedMinutes
+    int? expireUnapprovedMinutes,
   }) : _listener = listener,
        _accuracy = accuracy ?? LocationAccuracy.best,
-       _expireUnapprovedMinutes = expireUnapprovedMinutes ?? 60
-  ;
+       _expireUnapprovedMinutes = expireUnapprovedMinutes ?? 60;
 
   DraftModeLogger logger = DraftModeLogger(false);
   StreamSubscription<DraftModeGeofenceEvent>? _geofenceSubscription;
@@ -39,13 +38,14 @@ class DraftModeGeofenceController {
   /// transition as pending and prevents duplicate enter notifications until the
   /// grace window (see [shouldStartTracking]) expires.
   Future<void> startGeofence() async {
-    logger.notice("geofenceController:startGeofence with lng:${_listener.centerLng}, lat:${_listener.centerLat}");
-    await _listener.start(
-      distanceFilterMeters: 20,
-      accuracy: _accuracy,
+    logger.notice(
+      "geofenceController:startGeofence with lng:${_listener.centerLng}, lat:${_listener.centerLat}",
     );
+    await _listener.start(distanceFilterMeters: 20, accuracy: _accuracy);
     _geofenceSubscription = _listener.events.listen((event) async {
-      logger.notice("geofenceController:lat:${event.position.latitude.toString()}:lng:${event.position.longitude.toString()}");
+      logger.notice(
+        "geofenceController:lat:${event.position.latitude.toString()}:lng:${event.position.longitude.toString()}",
+      );
       if (event.entering) {
         logger.notice("geofenceController:entering");
         final bool updateState = await _updateState();
@@ -79,7 +79,9 @@ class DraftModeGeofenceController {
 
   /// Persists the newest geofence state.
   Future<void> _saveState(String state, bool approved) async {
-    logger.notice("geofenceController:saveState: state:$state, approved:$approved");
+    logger.notice(
+      "geofenceController:saveState: state:$state, approved:$approved",
+    );
     await DraftModeGeofenceStateStorage().save(state, approved);
   }
 
@@ -87,11 +89,12 @@ class DraftModeGeofenceController {
   Future<DraftModeGeofenceStateEntity?> _readState() async {
     final lastState = await DraftModeGeofenceStateStorage().read();
     if (lastState != null) {
-      logger.notice("geofenceController:readState, lastEventDate: ${lastState.eventDate.toIso8601String()}, lastState: ${lastState.state}, lastApproved: ${lastState.approved}");
+      logger.notice(
+        "geofenceController:readState, lastEventDate: ${lastState.eventDate.toIso8601String()}, lastState: ${lastState.state}, lastApproved: ${lastState.approved}",
+      );
     } else {
       logger.notice("geofenceController:readState, no last state found");
     }
     return lastState;
   }
-
 }

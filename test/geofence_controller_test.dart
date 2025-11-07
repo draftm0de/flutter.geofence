@@ -47,8 +47,10 @@ void main() {
   });
 
   test('enter ignored when last state was enter', () async {
-    await DraftModeGeofenceStateStorage()
-        .save(DraftModeGeofenceStateEntity.stateEnter, true);
+    await DraftModeGeofenceStateStorage().save(
+      DraftModeGeofenceStateEntity.stateEnter,
+      true,
+    );
 
     await controller.startGeofence();
     listener.emitEnter();
@@ -100,12 +102,12 @@ class TestDraftModeGeofenceListener extends DraftModeGeofenceListener {
     required Future<bool> Function(DraftModeGeofenceEvent event) onExit,
     DraftModeGeofenceNotifier? notifier,
   }) : super(
-          centerLat: 0,
-          centerLng: 0,
-          radiusMeters: 5,
-          onEnter: onEnter,
-          onExit: onExit,
-        );
+         centerLat: 0,
+         centerLng: 0,
+         radiusMeters: 5,
+         onEnter: onEnter,
+         onExit: onExit,
+       );
 
   @override
   Future<void> start({
@@ -125,15 +127,15 @@ class TestDraftModeGeofenceListener extends DraftModeGeofenceListener {
   }
 
   Position _position() => Position(
-        latitude: 0,
-        longitude: 0,
-        timestamp: DateTime.now(),
-        accuracy: 1,
-        altitude: 0,
-        altitudeAccuracy: 0,
-        heading: 0,
-        headingAccuracy: 0,
-        speed: 0,
-        speedAccuracy: 0,
-      );
+    latitude: 0,
+    longitude: 0,
+    timestamp: DateTime.now(),
+    accuracy: 1,
+    altitude: 0,
+    altitudeAccuracy: 0,
+    heading: 0,
+    headingAccuracy: 0,
+    speed: 0,
+    speedAccuracy: 0,
+  );
 }

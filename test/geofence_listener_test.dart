@@ -61,11 +61,13 @@ void main() {
     fakePlatform.serviceEnabled = false;
     await expectLater(
       () => listener.start(),
-      throwsA(isA<Exception>().having(
-        (ex) => ex.toString(),
-        'message',
-        contains('Location services disabled'),
-      )),
+      throwsA(
+        isA<Exception>().having(
+          (ex) => ex.toString(),
+          'message',
+          contains('Location services disabled'),
+        ),
+      ),
     );
   });
 
@@ -74,11 +76,13 @@ void main() {
     fakePlatform.requestResult = LocationPermission.denied;
     await expectLater(
       () => listener.start(),
-      throwsA(isA<Exception>().having(
-        (ex) => ex.toString(),
-        'message',
-        contains('Location permission denied'),
-      )),
+      throwsA(
+        isA<Exception>().having(
+          (ex) => ex.toString(),
+          'message',
+          contains('Location permission denied'),
+        ),
+      ),
     );
   });
 
@@ -86,11 +90,13 @@ void main() {
     fakePlatform.permissionStatus = LocationPermission.deniedForever;
     await expectLater(
       () => listener.start(),
-      throwsA(isA<Exception>().having(
-        (ex) => ex.toString(),
-        'message',
-        contains('Location permission denied'),
-      )),
+      throwsA(
+        isA<Exception>().having(
+          (ex) => ex.toString(),
+          'message',
+          contains('Location permission denied'),
+        ),
+      ),
     );
   });
 }
@@ -146,8 +152,9 @@ class FakeGeolocatorPlatform extends GeolocatorPlatform {
   Future<LocationPermission> requestPermission() async => requestResult;
 
   @override
-  Future<Position> getCurrentPosition({LocationSettings? locationSettings}) async =>
-      currentPosition;
+  Future<Position> getCurrentPosition({
+    LocationSettings? locationSettings,
+  }) async => currentPosition;
 
   @override
   Stream<Position> getPositionStream({LocationSettings? locationSettings}) =>

@@ -36,9 +36,15 @@ and the restart policy (see the `test/` folder).
 Apps that need to surface a platform-aware confirmation dialog can wire the
 optional `DraftModeGeofenceNotifier`. The notifier depends on the shared
 `draftmode_ui` package and uses `DraftModeUIConfirm` under the hood. When the
-app is backgrounded (or no navigator context is available) the notifier
-auto-approves the movement so the controller can keep running. When foreground,
-the dialog result is forwarded to the listener callback so the controller knows
-whether the exit/enter transition should be persisted as approved or pending.
-You can pass localized `confirmLabel`/`cancelLabel` strings to
-`confirmMovement` so the dialog buttons match the surrounding UI language.
+app is foregrounded, the dialog result determines whether the listener callback
+should proceed. When a dialog cannot be shown (for example because the app is
+backgrounded or the navigator key is missing) the notifier now posts an
+actionable local notification instead of auto-approving the movement.
+
+Call `DraftModeGeofenceBackgroundNotifier.instance.init(...)` during app
+bootstrap with an `onConfirm` callback to register Android channels + iOS
+categories and to handle YES/NO actions from background notifications. Pass the
+same callback to `DraftModeGeofenceNotifier.confirmMovement` so it is invoked
+whenever the user approves either from the dialog or from the notification.
+Localized `confirmLabel`/`cancelLabel` strings are still supported so the UI
+matches the surrounding language.

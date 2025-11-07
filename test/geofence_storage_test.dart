@@ -18,7 +18,10 @@ void main() {
   });
 
   test('save persists state and read restores it', () async {
-    final saved = await storage.save(DraftModeGeofenceStateEntity.stateEnter, true);
+    final saved = await storage.save(
+      DraftModeGeofenceStateEntity.stateEnter,
+      true,
+    );
     expect(saved, isTrue);
 
     final restored = await storage.read();

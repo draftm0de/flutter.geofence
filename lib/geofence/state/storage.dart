@@ -32,7 +32,7 @@ class DraftModeGeofenceStateStorage {
     final data = {
       _keyEventDate: DateTime.now().toIso8601String(),
       _keyState: state,
-      _keyApproved: approved ? 'true' : 'false'
+      _keyApproved: approved ? 'true' : 'false',
     };
     final prefs = await _prefs();
     return await prefs.setString(_storageKey, jsonEncode(data));

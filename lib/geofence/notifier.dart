@@ -1,3 +1,4 @@
+import 'package:draftmode_geofence/geofence/notifier/background.dart';
 import 'package:draftmode_ui/confirm.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/foundation.dart'
@@ -5,47 +6,59 @@ import 'package:flutter/foundation.dart'
 import 'listener.dart';
 
 /// Handles UI prompts for exit confirmation and exposes expiry metadata.
+typedef _ShowActionNotification =
+    Future<void> Function({
+      required int id,
+      required String title,
+      required String body,
+    });
+
 class DraftModeGeofenceNotifier {
   final GlobalKey<NavigatorState> _navigatorKey;
   final bool Function() _isAppInForeground;
   final bool Function() _isMounted;
+  final _ShowActionNotification _showActionNotification;
   final int expireStateMinutes;
   DraftModeGeofenceNotifier({
     required GlobalKey<NavigatorState> navigatorKey,
     required bool Function() isAppInForeground,
     required bool Function() isMounted,
+    _ShowActionNotification? showActionNotification,
     int? expireStateMinutes,
-  }) :
-    _navigatorKey = navigatorKey,
-    _isAppInForeground = isAppInForeground,
-    _isMounted = isMounted,
-    expireStateMinutes = expireStateMinutes ?? 2
-  ;
+  }) : _navigatorKey = navigatorKey,
+       _isAppInForeground = isAppInForeground,
+       _isMounted = isMounted,
+       _showActionNotification =
+           showActionNotification ??
+           DraftModeGeofenceBackgroundNotifier.instance.showActionNotification,
+       expireStateMinutes = expireStateMinutes ?? 2;
 
   static bool get isIOS => defaultTargetPlatform == TargetPlatform.iOS;
 
   /// Requests user confirmation for the given [event]. When the app cannot
-  /// surface a dialog (for example because it is backgrounded) the method
-  /// returns `true` so callers can auto-approve the movement. When a dialog is
-  /// shown we delegate to `DraftModeUIConfirm` from the shared `draftmode_ui`
-  /// package to ensure consistent styling and optional auto-confirm countdowns.
-  /// Custom button labels can be provided so host applications can localize the
-  /// action text.
-  Future<bool> confirmMovement(
-      DraftModeGeofenceEvent event, {
-        required String title,
-        required String message,
-        Duration? autoConfirmAfter,
-        String? confirmLabel,
-        String? cancelLabel,
-      }) async {
+  /// surface a dialog (for example because it is backgrounded) we post a local
+  /// notification so the user can respond later. When a dialog is shown we
+  /// delegate to `DraftModeUIConfirm` from the shared `draftmode_ui` package to
+  /// ensure consistent styling and optional auto-confirm countdowns. Custom
+  /// button labels can be provided so host applications can localize the action
+  /// text. Supply [onConfirm] to run work (for example persisting geofence
+  /// state) whenever the affirmative action is taken, even when it originates
+  /// from a background notification.
+  Future<void> confirmMovement(
+    DraftModeGeofenceEvent event, {
+    required String title,
+    required String message,
+    required Future<void> Function() onConfirm,
+    Duration? autoConfirmAfter,
+    String? confirmLabel,
+    String? cancelLabel,
+  }) async {
     final BuildContext? context = await getBuildContext();
     if (!_canShowForegroundDialog(context)) {
-      final movement = event.entering ? 'enter' : 'exit';
-      debugPrint(
-        'confirmMovement:$movement auto-approved (foreground context unavailable)',
-      );
-      return true;
+      final id = DateTime.now().millisecondsSinceEpoch;
+      await _showActionNotification(id: id, title: title, body: message);
+
+      return;
     }
 
     final bool? result = await DraftModeUIConfirm.show(
@@ -58,8 +71,9 @@ class DraftModeGeofenceNotifier {
       barrierDismissible: !isIOS,
       mode: DraftModeUIConfirmStyle.confirm,
     );
-
-    return result ?? false;
+    if (result == true) {
+      await onConfirm();
+    }
   }
 
   Future<BuildContext?> getBuildContext() async {

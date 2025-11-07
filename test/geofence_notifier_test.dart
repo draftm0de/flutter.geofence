@@ -23,41 +23,61 @@ DraftModeGeofenceEvent _exitEvent() {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('confirmMovement auto-approves when dialog cannot be shown', () async {
-    final notifier = DraftModeGeofenceNotifier(
-      navigatorKey: GlobalKey<NavigatorState>(),
-      isAppInForeground: () => false,
-      isMounted: () => true,
-    );
+  test(
+    'confirmMovement posts background notification when dialog cannot be shown',
+    () async {
+      final requests = <String>[];
+      final notifier = DraftModeGeofenceNotifier(
+        navigatorKey: GlobalKey<NavigatorState>(),
+        isAppInForeground: () => false,
+        isMounted: () => true,
+        showActionNotification:
+            ({required id, required title, required body}) async {
+              requests.add('$id|$title|$body');
+            },
+      );
 
-    final result = await notifier.confirmMovement(
-      _exitEvent(),
-      title: 'Confirm exit',
-      message: 'Leave geofence?',
-    );
+      var didConfirm = false;
+      await notifier.confirmMovement(
+        _exitEvent(),
+        title: 'Confirm exit',
+        message: 'Leave geofence?',
+        onConfirm: () async {
+          didConfirm = true;
+        },
+      );
 
-    expect(result, isTrue);
-  });
+      expect(requests, hasLength(1));
+      expect(didConfirm, isFalse);
+    },
+  );
 
-  testWidgets('confirmMovement uses dialog result when foreground', (tester) async {
+  testWidgets('confirmMovement uses dialog result when foreground', (
+    tester,
+  ) async {
     final navigatorKey = GlobalKey<NavigatorState>();
-    await tester.pumpWidget(MaterialApp(
-      navigatorKey: navigatorKey,
-      home: const SizedBox.shrink(),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(navigatorKey: navigatorKey, home: const SizedBox.shrink()),
+    );
 
     final notifier = DraftModeGeofenceNotifier(
       navigatorKey: navigatorKey,
       isAppInForeground: () => true,
       isMounted: () => true,
+      showActionNotification:
+          ({required id, required title, required body}) async {},
     );
 
+    var confirmCount = 0;
     final confirmFuture = notifier.confirmMovement(
       _exitEvent(),
       title: 'Confirm exit',
       message: 'Leave geofence?',
       confirmLabel: 'Allow',
       cancelLabel: 'Stay',
+      onConfirm: () async {
+        confirmCount++;
+      },
     );
 
     await tester.pumpAndSettle();
@@ -68,6 +88,7 @@ void main() {
     await tester.tap(find.text('Allow'));
     await tester.pumpAndSettle();
 
-    expect(await confirmFuture, isTrue);
+    await confirmFuture;
+    expect(confirmCount, 1);
   });
 }

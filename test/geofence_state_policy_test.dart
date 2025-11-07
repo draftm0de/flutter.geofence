@@ -18,10 +18,7 @@ void main() {
       );
 
       expect(
-        shouldStartTracking(
-          lastState: lastState,
-          expireUnapprovedMinutes: 2,
-        ),
+        shouldStartTracking(lastState: lastState, expireUnapprovedMinutes: 2),
         isFalse,
       );
     });
@@ -34,10 +31,7 @@ void main() {
       );
 
       expect(
-        shouldStartTracking(
-          lastState: lastState,
-          expireUnapprovedMinutes: 2,
-        ),
+        shouldStartTracking(lastState: lastState, expireUnapprovedMinutes: 2),
         isTrue,
       );
     });
@@ -50,7 +44,10 @@ void main() {
       );
 
       expect(
-        shouldStartTracking(lastState: lastState, expireUnapprovedMinutes: null),
+        shouldStartTracking(
+          lastState: lastState,
+          expireUnapprovedMinutes: null,
+        ),
         isTrue,
       );
     });
@@ -98,10 +95,7 @@ void main() {
       );
 
       expect(
-        shouldStartTracking(
-          lastState: lastState,
-          expireUnapprovedMinutes: 5,
-        ),
+        shouldStartTracking(lastState: lastState, expireUnapprovedMinutes: 5),
         isTrue,
       );
     });

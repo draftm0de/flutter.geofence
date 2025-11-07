@@ -18,6 +18,7 @@ dependencies:
   geolocator: ^14.0.2
   draftmode_ui:
     path: ../ui
+  flutter_local_notifications: ^19.5.0
 flutter:
   generate: true
   uses-material-design: true
