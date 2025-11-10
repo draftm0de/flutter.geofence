@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -10,8 +11,15 @@ class DraftModeGeofenceBackgroundNotifier {
   final _fln = FlutterLocalNotificationsPlugin();
   static const _channelId = 'confirm_channel';
   static const _iosCategoryId = 'CONFIRM_LEAVE';
+  Future<void> Function()? _onConfirm;
+  bool _pendingConfirm = false;
+  bool _isInitialized = false;
 
-  Future<void> init({required Future<void> Function() onConfirm}) async {
+  Future<void> init() async {
+    if (_isInitialized) {
+      return;
+    }
+    _isInitialized = true;
     // iOS categories with actions
     final darwinInit = DarwinInitializationSettings(
       notificationCategories: [
@@ -38,17 +46,11 @@ class DraftModeGeofenceBackgroundNotifier {
 
     await _fln.initialize(
       InitializationSettings(android: androidInit, iOS: darwinInit),
-      onDidReceiveNotificationResponse: (resp) async {
-        switch (resp.actionId) {
-          case 'YES':
-            await onConfirm();
-            break;
-          default:
-            break;
-        }
-      },
+      onDidReceiveNotificationResponse: _handleNotificationResponse,
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
+
+    await _requestPermissions();
 
     // Android channel
     const channel = AndroidNotificationChannel(
@@ -62,6 +64,43 @@ class DraftModeGeofenceBackgroundNotifier {
           AndroidFlutterLocalNotificationsPlugin
         >()
         ?.createNotificationChannel(channel);
+  }
+
+  Future<void> _requestPermissions() async {
+    final ios = _fln
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
+    await ios?.requestPermissions(alert: true, badge: true, sound: true);
+    final mac = _fln
+        .resolvePlatformSpecificImplementation<
+          MacOSFlutterLocalNotificationsPlugin
+        >();
+    await mac?.requestPermissions(alert: true, badge: true, sound: true);
+  }
+
+  void registerOnConfirmHandler(Future<void> Function() handler) {
+    _onConfirm = handler;
+    if (_pendingConfirm) {
+      _pendingConfirm = false;
+      unawaited(_onConfirm!.call());
+    }
+  }
+
+  Future<void> _handleNotificationResponse(NotificationResponse resp) async {
+    final type = resp.notificationResponseType;
+    final shouldConfirm =
+        type == NotificationResponseType.selectedNotification ||
+        (type == NotificationResponseType.selectedNotificationAction &&
+            resp.actionId == 'YES');
+    if (!shouldConfirm) {
+      return;
+    }
+    if (_onConfirm != null) {
+      await _onConfirm!();
+    } else {
+      _pendingConfirm = true;
+    }
   }
 
   // Post the action notification
@@ -110,7 +149,8 @@ class DraftModeGeofenceBackgroundNotifier {
 
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse response) async {
-  // runs in background isolate!
+  await DraftModeGeofenceBackgroundNotifier.instance
+      ._handleNotificationResponse(response);
 }
 
 @visibleForTesting
