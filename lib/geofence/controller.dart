@@ -12,14 +12,22 @@ class DraftModeGeofenceController {
   final DraftModeGeofenceListener _listener;
   final LocationAccuracy _accuracy;
   final int _expireUnapprovedMinutes;
+  final DraftModeGeofenceStateStorage _stateStorage;
+  final String fenceId;
 
   DraftModeGeofenceController({
     required DraftModeGeofenceListener listener,
     LocationAccuracy? accuracy,
     int? expireUnapprovedMinutes,
-  }) : _listener = listener,
-       _accuracy = accuracy ?? LocationAccuracy.best,
-       _expireUnapprovedMinutes = expireUnapprovedMinutes ?? 60;
+    String? fenceId,
+    DraftModeGeofenceStateStorage? stateStorage,
+  })  : _listener = listener,
+        _accuracy = accuracy ?? LocationAccuracy.best,
+        _expireUnapprovedMinutes = expireUnapprovedMinutes ?? 60,
+        _stateStorage =
+            stateStorage ?? DraftModeGeofenceStateStorage(fenceId: fenceId),
+        fenceId = stateStorage?.fenceId ??
+            (fenceId ?? DraftModeGeofenceStateStorage.defaultFenceId);
 
   DraftModeLogger logger = DraftModeLogger(false);
   StreamSubscription<DraftModeGeofenceEvent>? _geofenceSubscription;
@@ -82,12 +90,12 @@ class DraftModeGeofenceController {
     logger.notice(
       "geofenceController:saveState: state:$state, approved:$approved",
     );
-    await DraftModeGeofenceStateStorage().save(state, approved);
+    await _stateStorage.save(state, approved);
   }
 
   /// Loads the previously persisted geofence state, if any.
   Future<DraftModeGeofenceStateEntity?> _readState() async {
-    final lastState = await DraftModeGeofenceStateStorage().read();
+    final lastState = await _stateStorage.read();
     if (lastState != null) {
       logger.notice(
         "geofenceController:readState, lastEventDate: ${lastState.eventDate.toIso8601String()}, lastState: ${lastState.state}, lastApproved: ${lastState.approved}",
@@ -97,4 +105,8 @@ class DraftModeGeofenceController {
     }
     return lastState;
   }
+
+  /// Exposes the last known state for callers that need to inspect it on demand.
+  Future<DraftModeGeofenceStateEntity?> getLastKnownState() =>
+      _stateStorage.read();
 }

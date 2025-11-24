@@ -1,0 +1,42 @@
+name: draftmode_notifier_example
+description: Example app for DraftMode Notifier plugin.
+publish_to: "none"
+version: 1.0.0+1
+plist:
+  NSLocationWhenInUseUsageDescription: "This app uses your location to detect when you enter or leave defined areas and to send you timely notifications while the app is in use."
+  NSLocationAlwaysUsageDescription: "This app needs access to your location even when it’s not open to detect geofence events and deliver important notifications based on your movements."
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: "3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  draftmode_geofence:
+    path: ..
+#    git: https://github.com/draftm0de/flutter.notifier
+#    version: ^1.0.0
+
+  draftmode_notifier:
+    path: ../../notifier
+  #    git: https://github.com/draftm0de/flutter.notifier
+  #    version: ^1.0.0
+
+  draftmode_ui:
+    path: ../../ui
+#    git: https://github.com/draftm0de/flutter.ui
+#    version: ^1.0.0
+
+  shared_preferences: ^2.5.3
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

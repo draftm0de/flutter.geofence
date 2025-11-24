@@ -1,6 +1,5 @@
 import 'package:draftmode_geofence/geofence/controller.dart';
 import 'package:draftmode_geofence/geofence/listener.dart';
-import 'package:draftmode_geofence/geofence/notifier.dart';
 import 'package:draftmode_geofence/geofence/state/entity.dart';
 import 'package:draftmode_geofence/geofence/state/storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -100,14 +99,13 @@ class TestDraftModeGeofenceListener extends DraftModeGeofenceListener {
   TestDraftModeGeofenceListener({
     required Future<bool> Function(DraftModeGeofenceEvent event) onEnter,
     required Future<bool> Function(DraftModeGeofenceEvent event) onExit,
-    DraftModeGeofenceNotifier? notifier,
   }) : super(
-         centerLat: 0,
-         centerLng: 0,
-         radiusMeters: 5,
-         onEnter: onEnter,
-         onExit: onExit,
-       );
+          centerLat: 0,
+          centerLng: 0,
+          radiusMeters: 5,
+          onEnter: onEnter,
+          onExit: onExit,
+        );
 
   @override
   Future<void> start({
@@ -127,15 +125,15 @@ class TestDraftModeGeofenceListener extends DraftModeGeofenceListener {
   }
 
   Position _position() => Position(
-    latitude: 0,
-    longitude: 0,
-    timestamp: DateTime.now(),
-    accuracy: 1,
-    altitude: 0,
-    altitudeAccuracy: 0,
-    heading: 0,
-    headingAccuracy: 0,
-    speed: 0,
-    speedAccuracy: 0,
-  );
+        latitude: 0,
+        longitude: 0,
+        timestamp: DateTime.now(),
+        accuracy: 1,
+        altitude: 0,
+        altitudeAccuracy: 0,
+        heading: 0,
+        headingAccuracy: 0,
+        speed: 0,
+        speedAccuracy: 0,
+      );
 }

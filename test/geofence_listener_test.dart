@@ -154,7 +154,8 @@ class FakeGeolocatorPlatform extends GeolocatorPlatform {
   @override
   Future<Position> getCurrentPosition({
     LocationSettings? locationSettings,
-  }) async => currentPosition;
+  }) async =>
+      currentPosition;
 
   @override
   Stream<Position> getPositionStream({LocationSettings? locationSettings}) =>

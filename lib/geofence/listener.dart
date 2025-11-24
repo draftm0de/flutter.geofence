@@ -4,8 +4,6 @@ import 'dart:math' show cos, sqrt, asin, sin;
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
-import 'notifier.dart';
-
 /// Simple enter/exit stream for a circular geofence.
 class DraftModeGeofenceEvent {
   final bool entering; // true = enter, false = exit
@@ -21,7 +19,6 @@ class DraftModeGeofenceListener {
   final double radiusMeters;
   final Future<bool> Function(DraftModeGeofenceEvent event) onEnter;
   final Future<bool> Function(DraftModeGeofenceEvent event) onExit;
-  final DraftModeGeofenceNotifier? notifier;
 
   StreamSubscription<Position>? _sub;
   final _controller = StreamController<DraftModeGeofenceEvent>.broadcast();
@@ -37,7 +34,6 @@ class DraftModeGeofenceListener {
     required this.radiusMeters,
     required this.onEnter,
     required this.onExit,
-    this.notifier,
   });
 
   /// Broadcast stream consumers can listen to for enter/exit events.
@@ -66,8 +62,7 @@ class DraftModeGeofenceListener {
     final initial = await Geolocator.getCurrentPosition(
       locationSettings: LocationSettings(accuracy: accuracy),
     );
-    _isInside =
-        _distanceMeters(
+    _isInside = _distanceMeters(
           initial.latitude,
           initial.longitude,
           centerLat,
@@ -88,7 +83,7 @@ class DraftModeGeofenceListener {
     ) {
       final inside =
           _distanceMeters(pos.latitude, pos.longitude, centerLat, centerLng) <=
-          radiusMeters;
+              radiusMeters;
 
       if (_isInside == null) {
         _isInside = inside;
@@ -126,8 +121,7 @@ class DraftModeGeofenceListener {
     const R = 6371000.0; // Earth radius meters
     final dLat = _deg2rad(lat2 - lat1);
     final dLon = _deg2rad(lon2 - lon1);
-    final a =
-        (sin(dLat / 2) * sin(dLat / 2)) +
+    final a = (sin(dLat / 2) * sin(dLat / 2)) +
         cos(_deg2rad(lat1)) *
             cos(_deg2rad(lat2)) *
             (sin(dLon / 2) * sin(dLon / 2));

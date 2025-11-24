@@ -42,8 +42,7 @@ This is a Flutter geofencing package providing location-based enter/exit notific
 
 - **DraftModeGeofenceController** (`lib/geofence/controller.dart`): Orchestrates the geofence lifecycle, manages state persistence, and coordinates callbacks
 - **DraftModeGeofenceListener** (`lib/geofence/listener.dart`): Produces enter/exit stream events by monitoring device location against a circular fence
-- **DraftModeGeofenceNotifier** (`lib/geofence/notifier.dart`): UI helper for showing movement confirmations via dialogs or notifications
-- **DraftModeGeofenceBackgroundNotifier** (`lib/geofence/notifier/background.dart`): Handles background notifications when app is not in foreground
+- **DraftModeGeofenceRegistry** (`lib/geofence/registry.dart`): Manages multiple listener/controller pairs so apps can track several fences simultaneously
 
 ### State Management
 
@@ -55,8 +54,6 @@ Located in `lib/geofence/state/`:
 ### Dependencies
 
 - `geolocator`: Location tracking
-- `flutter_local_notifications`: Background notifications
-- `draftmode_ui`: Sibling package at `../ui` for platform-aware dialogs
 - `shared_preferences`: State persistence
 
 ## Workflow Requirements

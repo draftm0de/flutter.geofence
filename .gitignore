@@ -1,7 +1,29 @@
-/.idea/
-!/.git/hooks/pre-commit
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Flutter
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+.dart_tool/
+pubspec.lock
+**/doc/api/
 /build/
-/.dart_tool/
-/doc/api/
-coverage/html/
-coverage/lcov.info
+/coverage/

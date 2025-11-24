@@ -1,22 +1,49 @@
 # DraftMode Geofence
 
-Lightweight building blocks for adding a single circular geofence to a Flutter
+Lightweight building blocks for adding one or many circular geofences to a Flutter
 app. The module is split into a `DraftModeGeofenceListener` (produces enter/exit
-stream events), a `DraftModeGeofenceController` (persists state + orchestrates
-callbacks), and an optional UI helper (`DraftModeGeofenceNotifier`) for showing
-movement confirmations.
+stream events) and a `DraftModeGeofenceController` (persists state + orchestrates
+callbacks). UI confirmations/notifications are left to the integrating app so
+they can be tailored per product.
 
 ## Typical Flow
 
 1. Instantiate a `DraftModeGeofenceListener` with the center point, radius, and
    async callbacks for `onEnter`/`onExit`. Each callback must resolve to `true`
-   when the transition is approved (for example after showing a dialog). Pass
-   an optional notifier when you need confirmation before leaving the fence.
+   when the transition is approved (for example after showing a dialog).
 2. Create a `DraftModeGeofenceController` with that listener and call
    `startGeofence()` once the app is ready. The controller automatically stores
    the last event via `DraftModeGeofenceStateStorage` so duplicate enter/exit
    sequences can be avoided.
 3. On teardown call `dispose()` on the controller to stop location updates.
+
+## Multiple fences
+
+Use `DraftModeGeofenceRegistry` when several listeners need to run in parallel.
+Each fence is registered under an identifier so its persisted state does not
+collide with others:
+
+```
+final registry = DraftModeGeofenceRegistry();
+for (final region in regions) {
+  final listener = DraftModeGeofenceListener(
+    centerLat: region.lat,
+    centerLng: region.lng,
+    radiusMeters: region.radiusMeters,
+    onEnter: (event) => handleEnter(region.id, event),
+    onExit: (event) => handleExit(region.id, event),
+  );
+  await registry.registerFence(fenceId: region.id, listener: listener);
+}
+
+final officeState = await registry.readFenceState('office');
+// ...later, dispose every fence at once
+await registry.dispose();
+```
+
+`DraftModeGeofenceStateStorage` now namespaces entries by fence id, so existing
+single-fence integrations keep working while multi-fence setups retain their own
+history.
 
 ## Testing
 
@@ -33,18 +60,7 @@ and the restart policy (see the `test/` folder).
 
 ## UI confirmations
 
-Apps that need to surface a platform-aware confirmation dialog can wire the
-optional `DraftModeGeofenceNotifier`. The notifier depends on the shared
-`draftmode_ui` package and uses `DraftModeUIConfirm` under the hood. When the
-app is foregrounded, the dialog result determines whether the listener callback
-should proceed. When a dialog cannot be shown (for example because the app is
-backgrounded or the navigator key is missing) the notifier now posts an
-actionable local notification instead of auto-approving the movement.
-
-Call `DraftModeGeofenceBackgroundNotifier.instance.init(...)` during app
-bootstrap with an `onConfirm` callback to register Android channels + iOS
-categories and to handle YES/NO actions from background notifications. Pass the
-same callback to `DraftModeGeofenceNotifier.confirmMovement` so it is invoked
-whenever the user approves either from the dialog or from the notification.
-Localized `confirmLabel`/`cancelLabel` strings are still supported so the UI
-matches the surrounding language.
+If you need dialogs or notifications before approving a transition, hook that up
+inside your app (see the example project for reference). The controller only
+expects the provided callbacks to resolve `true`/`false` based on the result of
+your UI flow.

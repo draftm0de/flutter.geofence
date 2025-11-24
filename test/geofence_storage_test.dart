@@ -37,4 +37,22 @@ void main() {
     expect(restored!.state, DraftModeGeofenceStateEntity.stateExit);
     expect(restored.approved, isFalse);
   });
+
+  test('separate fence ids do not override each other', () async {
+    final officeStorage = DraftModeGeofenceStateStorage(fenceId: 'office');
+    final homeStorage = DraftModeGeofenceStateStorage(fenceId: 'home');
+
+    await officeStorage.save(DraftModeGeofenceStateEntity.stateEnter, true);
+    await homeStorage.save(DraftModeGeofenceStateEntity.stateExit, false);
+
+    final officeState = await officeStorage.read();
+    final homeState = await homeStorage.read();
+    final defaultState = await storage.read();
+
+    expect(officeState, isNotNull);
+    expect(officeState!.state, DraftModeGeofenceStateEntity.stateEnter);
+    expect(homeState, isNotNull);
+    expect(homeState!.state, DraftModeGeofenceStateEntity.stateExit);
+    expect(defaultState, isNull);
+  });
 }
