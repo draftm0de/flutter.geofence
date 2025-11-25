@@ -1,21 +1,29 @@
 import 'dart:convert';
 
+import 'package:draftmode_geofence/geofence.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class GeofenceConfig {
-  const GeofenceConfig({
-    required this.id,
-    required this.label,
-    required this.lat,
-    required this.lng,
-    this.radiusMeters = 120,
-  });
+class GeofenceConfig implements DraftModeGeofenceConfig {
+  const GeofenceConfig(
+      {required this.id,
+      required this.label,
+      required this.lat,
+      required this.lng,
+      this.radiusMeters = 120,
+      this.onEvent});
 
+  @override
   final String id;
+  @override
   final String label;
+  @override
   final double lat;
+  @override
   final double lng;
+  @override
   final double radiusMeters;
+  @override
+  final Future<bool> Function(DraftModeGeofenceEvent event)? onEvent;
 
   static const List<GeofenceConfig> defaults = [
     GeofenceConfig(
@@ -40,6 +48,7 @@ class GeofenceConfig {
     double? lat,
     double? lng,
     double? radiusMeters,
+    Future<bool> Function(DraftModeGeofenceEvent event)? onEvent,
   }) =>
       GeofenceConfig(
         id: id ?? this.id,
@@ -47,6 +56,7 @@ class GeofenceConfig {
         lat: lat ?? this.lat,
         lng: lng ?? this.lng,
         radiusMeters: radiusMeters ?? this.radiusMeters,
+        onEvent: onEvent ?? this.onEvent,
       );
 
   Map<String, dynamic> toJson() => {

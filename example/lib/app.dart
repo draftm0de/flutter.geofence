@@ -6,6 +6,7 @@ import 'package:draftmode_notifier_example/entity/config.dart';
 import 'package:draftmode_ui/components.dart';
 import 'package:flutter/cupertino.dart';
 
+import 'screen/fence.dart';
 import 'screen/home.dart';
 
 class App extends StatefulWidget {
@@ -17,6 +18,7 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
+  DraftModeGeofenceFactory? _factory;
   DraftModeGeofenceRegistry? _registry;
   final List<StreamSubscription<DraftModeGeofenceEvent>> _eventSubscriptions =
       [];
@@ -47,6 +49,7 @@ class _AppState extends State<App> {
   }
 
   Future<void> _initGeofence() async {
+    // reset current state(s)
     if (mounted) {
       setState(() {
         _isLoading = true;
@@ -55,43 +58,42 @@ class _AppState extends State<App> {
     await _disposeRegistry();
     _persistedStates.clear();
     _liveStates.clear();
+
+    // load config
     final configs = await GeofenceConfigStore().loadAll();
-    final registry = DraftModeGeofenceRegistry();
+
+    final factory = DraftModeGeofenceFactory();
+    final registry = await factory.init(
+      configs,
+      onEvent: (fenceId, event) => _handleGeofenceEvent(fenceId, event),
+    );
+    _factory = factory;
+    _registry = registry;
+
     for (final config in configs) {
-      final listener = DraftModeGeofenceListener(
-        centerLat: config.lat,
-        centerLng: config.lng,
-        radiusMeters: config.radiusMeters,
-        onEvent: (DraftModeGeofenceEvent event) =>
-            _handleGeofenceEvent(config.id, event),
-      );
-
-      _eventSubscriptions.add(
-        listener.events.listen((event) {
-          if (!mounted) return;
-          setState(() {
-            _liveStates[config.id] = event.entering;
-          });
-          _refreshFenceState(config.id);
-        }),
-      );
-
-      await registry.registerFence(
-        fenceId: config.id,
-        listener: listener,
-      );
+      final listener = factory.listenerFor(config.id);
+      if (listener != null) {
+        _eventSubscriptions.add(
+          listener.events.listen((event) {
+            if (!mounted) return;
+            setState(() {
+              _liveStates[config.id] = event.entering;
+            });
+            _refreshFenceState(config.id);
+          }),
+        );
+      }
 
       final state = await registry.readFenceState(config.id);
       _persistedStates[config.id] = state;
     }
 
     if (!mounted) {
-      await registry.dispose();
+      await factory.dispose();
       return;
     }
 
     setState(() {
-      _registry = registry;
       _configs = configs;
       _isLoading = false;
     });
@@ -147,10 +149,13 @@ class _AppState extends State<App> {
     required double latitude,
     required double longitude,
     required double radiusMeters,
+    String? fenceId,
   }) async {
     final store = GeofenceConfigStore();
     final configs = await store.loadAll();
-    final id = _generateFenceId(label, configs);
+    final id = (fenceId != null && fenceId.isNotEmpty)
+        ? fenceId
+        : _generateFenceId(label, configs);
     final updated = [
       ...configs,
       GeofenceConfig(
@@ -165,12 +170,71 @@ class _AppState extends State<App> {
     await _initGeofence();
   }
 
+  /// Persists a newly created fence that originated from the editor screen.
+  Future<void> _createFenceFromScreen(GeofenceConfig draft) async {
+    await _addFence(
+      label: draft.label,
+      latitude: draft.lat,
+      longitude: draft.lng,
+      radiusMeters: draft.radiusMeters,
+      fenceId: draft.id,
+    );
+  }
+
   Future<void> _deleteFence(String id) async {
     final store = GeofenceConfigStore();
     final configs = await store.loadAll();
     final updated = configs.where((config) => config.id != id).toList();
     await store.saveAll(updated);
     await _initGeofence();
+  }
+
+  Future<void> _editFence(GeofenceConfig updated) async {
+    final store = GeofenceConfigStore();
+    final configs = await store.loadAll();
+    final index = configs.indexWhere((config) => config.id == updated.id);
+    if (index == -1) {
+      return;
+    }
+    final next = [...configs];
+    next[index] = updated;
+    await store.saveAll(next);
+    await _initGeofence();
+  }
+
+  Future<void> _openFenceDetails(GeofenceConfig config) async {
+    final navigator = widget.navigatorKey.currentState;
+    if (navigator == null) return;
+    await navigator.push(
+      CupertinoPageRoute(
+        builder: (context) => FenceScreen(
+          config: config,
+          onSave: _editFence,
+          onDelete: _deleteFence,
+        ),
+      ),
+    );
+  }
+
+  /// Pushes the shared fence editor in "create" mode.
+  Future<void> _openFenceCreator() async {
+    final navigator = widget.navigatorKey.currentState;
+    if (navigator == null) return;
+    await navigator.push(
+      CupertinoPageRoute(
+        builder: (context) => FenceScreen(
+          config: GeofenceConfig(
+            id: '',
+            label: '',
+            lat: 0,
+            lng: 0,
+            radiusMeters: 120,
+          ),
+          onSave: _createFenceFromScreen,
+          onDelete: null,
+        ),
+      ),
+    );
   }
 
   String _generateFenceId(String label, List<GeofenceConfig> existing) {
@@ -202,10 +266,11 @@ class _AppState extends State<App> {
       await sub.cancel();
     }
     _eventSubscriptions.clear();
-    final registry = _registry;
+    final factory = _factory;
+    _factory = null;
     _registry = null;
-    if (registry != null) {
-      await registry.dispose();
+    if (factory != null) {
+      await factory.dispose();
     }
   }
 
@@ -221,19 +286,8 @@ class _AppState extends State<App> {
         persistedStates: _persistedStates,
         onRefreshStates: _refreshAllFenceStates,
         onResetGeofences: _resetGeofence,
-        onAddFence: ({
-          required String label,
-          required double latitude,
-          required double longitude,
-          required double radiusMeters,
-        }) =>
-            _addFence(
-          label: label,
-          latitude: latitude,
-          longitude: longitude,
-          radiusMeters: radiusMeters,
-        ),
-        onDeleteFence: _deleteFence,
+        onFenceTap: (config) => unawaited(_openFenceDetails(config)),
+        onAddFence: _openFenceCreator,
       ),
     );
   }

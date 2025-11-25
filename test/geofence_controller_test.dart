@@ -93,6 +93,17 @@ void main() {
     expect(stored!.state, DraftModeGeofenceStateEntity.stateExit);
     expect(stored.approved, isFalse);
   });
+
+  test('constructor prefers state storage fenceId when provided', () async {
+    final customStorage = DraftModeGeofenceStateStorage(fenceId: 'from-storage');
+    final overridden = DraftModeGeofenceController(
+      listener: listener,
+      fenceId: 'from-arg',
+      stateStorage: customStorage,
+    );
+    expect(overridden.fenceId, 'from-storage');
+    await overridden.dispose();
+  });
 }
 
 class TestDraftModeGeofenceListener extends DraftModeGeofenceListener {

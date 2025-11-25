@@ -1,6 +1,7 @@
 import 'package:draftmode_geofence/geofence/listener.dart';
 import 'package:draftmode_geofence/geofence/registry.dart';
 import 'package:draftmode_geofence/geofence/state/entity.dart';
+import 'package:draftmode_geofence/geofence/state/storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,6 +49,30 @@ void main() {
 
     expect(registry.controllerFor('office'), isNull);
     expect(listener.stopCount, 1);
+  });
+
+  test('readFenceState falls back to persisted storage when no controller', () async {
+    final offlineStorage = DraftModeGeofenceStateStorage(fenceId: 'ghost');
+    await offlineStorage.save(
+      DraftModeGeofenceStateEntity.stateEnter,
+      true,
+    );
+
+    final state = await registry.readFenceState('ghost');
+    expect(state, isNotNull);
+    expect(state!.state, DraftModeGeofenceStateEntity.stateEnter);
+  });
+
+  test('registeredFenceIds mirrors current controllers', () async {
+    await registry.registerFence(fenceId: 'office', listener: _TestListener());
+    await registry.registerFence(fenceId: 'home', listener: _TestListener());
+
+    expect(registry.registeredFenceIds, containsAll(['office', 'home']));
+
+    await registry.unregisterFence('home');
+
+    expect(registry.registeredFenceIds, contains('office'));
+    expect(registry.registeredFenceIds.contains('home'), isFalse);
   });
 }
 
