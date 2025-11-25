@@ -18,8 +18,7 @@ void main() {
       centerLat: 0,
       centerLng: 0,
       radiusMeters: 10,
-      onEnter: (_) async => true,
-      onExit: (_) async => true,
+      onEvent: (_) async => true,
     );
   });
 

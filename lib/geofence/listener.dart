@@ -17,23 +17,21 @@ class DraftModeGeofenceListener {
   final double centerLat;
   final double centerLng;
   final double radiusMeters;
-  final Future<bool> Function(DraftModeGeofenceEvent event) onEnter;
-  final Future<bool> Function(DraftModeGeofenceEvent event) onExit;
+  final Future<bool> Function(DraftModeGeofenceEvent event) onEvent;
 
   StreamSubscription<Position>? _sub;
   final _controller = StreamController<DraftModeGeofenceEvent>.broadcast();
   bool? _isInside; // unknown at start
 
-  /// [onEnter] and [onExit] must return whether the consumer approved the
-  /// movement (for example after prompting the user). Returning `false` keeps
-  /// the controller's persisted state pending so another exit cannot be
-  /// confirmed until the timeout passes.
+  /// [onEvent] must return whether the consumer approved the movement (for
+  /// example after prompting the user). Returning `false` keeps the
+  /// controller's persisted state pending so another exit cannot be confirmed
+  /// until the timeout passes.
   DraftModeGeofenceListener({
     required this.centerLat,
     required this.centerLng,
     required this.radiusMeters,
-    required this.onEnter,
-    required this.onExit,
+    required this.onEvent,
   });
 
   /// Broadcast stream consumers can listen to for enter/exit events.

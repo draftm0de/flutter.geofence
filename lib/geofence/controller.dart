@@ -58,13 +58,13 @@ class DraftModeGeofenceController {
         logger.notice("geofenceController:entering");
         final bool updateState = await _updateState();
         if (updateState) {
-          final confirm = await _listener.onEnter(event);
+          final confirm = await _listener.onEvent(event);
           if (confirm) {
             await _saveState(DraftModeGeofenceStateEntity.stateEnter, true);
           }
         }
       } else {
-        final confirmed = await _listener.onExit(event);
+        final confirmed = await _listener.onEvent(event);
         if (confirmed) {
           await _saveState(DraftModeGeofenceStateEntity.stateExit, true);
           logger.notice("geofenceController:exit (confirmed)");

@@ -103,8 +103,7 @@ class TestDraftModeGeofenceListener extends DraftModeGeofenceListener {
           centerLat: 0,
           centerLng: 0,
           radiusMeters: 5,
-          onEnter: onEnter,
-          onExit: onExit,
+          onEvent: (event) => event.entering ? onEnter(event) : onExit(event),
         );
 
   @override

@@ -3,8 +3,8 @@ description: Example app for DraftMode Notifier plugin.
 publish_to: "none"
 version: 1.0.0+1
 plist:
-  NSLocationWhenInUseUsageDescription: "This app uses your location to detect when you enter or leave defined areas and to send you timely notifications while the app is in use."
-  NSLocationAlwaysUsageDescription: "This app needs access to your location even when it’s not open to detect geofence events and deliver important notifications based on your movements."
+  NSLocationWhenInUseUsageDescription: "This app uses your location to detect geofence events that automatically track your time while the app is in use, so you don’t have to record it manually."
+  NSLocationAlwaysUsageDescription: "This app needs background location access to detect geofence events at all times. This is essential for automatically tracking your time—even when the app is closed—so you no longer need to enter it manually."
 
 environment:
   sdk: '>=3.3.0 <4.0.0'

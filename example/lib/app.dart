@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:draftmode_geofence/geofence.dart';
+import 'package:draftmode_notifier/notifier.dart';
 import 'package:draftmode_notifier_example/entity/config.dart';
+import 'package:draftmode_ui/components.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'screen/home.dart';
@@ -26,16 +28,25 @@ class _AppState extends State<App> {
   void initState() {
     super.initState();
     // config geofence
-    unawaited(_initGeofences());
-
-    /*_geofencingController = TimeTacGeofencingController(
-      navigatorKey: navigatorKey,
-      isAppInForeground: () => _isAppInForeground,
-      isMounted: () => mounted,
-    );*/
+    unawaited(_initGeofence());
+    // config notifier
+    unawaited(_initNotifier());
   }
 
-  Future<void> _initGeofences() async {
+  Future<void> _initNotifier() async {
+    await DraftModeNotifier.instance.init();
+    final configs = await GeofenceConfigStore().loadAll();
+    for (final config in configs) {
+      final String fenceId = config.id;
+      debugPrint("register [$fenceId] _onEnterNotify");
+      DraftModeNotifier.instance.registerConsumer(
+        payload: fenceId,
+        handler: _onEnterNotify,
+      );
+    }
+  }
+
+  Future<void> _initGeofence() async {
     if (mounted) {
       setState(() {
         _isLoading = true;
@@ -51,8 +62,8 @@ class _AppState extends State<App> {
         centerLat: config.lat,
         centerLng: config.lng,
         radiusMeters: config.radiusMeters,
-        onEnter: (DraftModeGeofenceEvent event) => _onEnter(config.id, event),
-        onExit: (DraftModeGeofenceEvent event) => _onExit(config.id, event),
+        onEvent: (DraftModeGeofenceEvent event) =>
+            _handleGeofenceEvent(config.id, event),
       );
 
       _eventSubscriptions.add(
@@ -86,13 +97,27 @@ class _AppState extends State<App> {
     });
   }
 
-  Future<bool> _onEnter(String fenceId, DraftModeGeofenceEvent event) async {
-    debugPrint("[$fenceId] onEnter");
-    return true;
+  Future<void> _onEnterNotify(DraftModeNotificationResponse response) async {
+    await DraftModeUIDialog.show(
+      title: 'Notification',
+      message: "You've tapped on the notification (${response.payload})",
+    );
   }
 
-  Future<bool> _onExit(String fenceId, DraftModeGeofenceEvent event) async {
-    debugPrint("[$fenceId] onExit");
+  Future<bool> _handleGeofenceEvent(
+    String fenceId,
+    DraftModeGeofenceEvent event,
+  ) async {
+    if (event.entering) {
+      debugPrint("[$fenceId] onEnter ${event.entering}");
+      await DraftModeNotifier.instance.pushNotification(
+        title: "Enter geofence",
+        body: "You've entered, press to continue",
+        payload: fenceId,
+      );
+    } else {
+      debugPrint("[$fenceId] onExit ${event.entering}");
+    }
     return true;
   }
 
@@ -112,9 +137,9 @@ class _AppState extends State<App> {
     }
   }
 
-  Future<void> _resetGeofences() async {
+  Future<void> _resetGeofence() async {
     await GeofenceConfigStore().resetToDefaults();
-    await _initGeofences();
+    await _initGeofence();
   }
 
   Future<void> _addFence({
@@ -137,7 +162,7 @@ class _AppState extends State<App> {
       ),
     ];
     await store.saveAll(updated);
-    await _initGeofences();
+    await _initGeofence();
   }
 
   Future<void> _deleteFence(String id) async {
@@ -145,7 +170,7 @@ class _AppState extends State<App> {
     final configs = await store.loadAll();
     final updated = configs.where((config) => config.id != id).toList();
     await store.saveAll(updated);
-    await _initGeofences();
+    await _initGeofence();
   }
 
   String _generateFenceId(String label, List<GeofenceConfig> existing) {
@@ -195,7 +220,7 @@ class _AppState extends State<App> {
         liveStates: _liveStates,
         persistedStates: _persistedStates,
         onRefreshStates: _refreshAllFenceStates,
-        onResetGeofences: _resetGeofences,
+        onResetGeofences: _resetGeofence,
         onAddFence: ({
           required String label,
           required double latitude,

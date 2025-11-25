@@ -9,8 +9,9 @@ they can be tailored per product.
 ## Typical Flow
 
 1. Instantiate a `DraftModeGeofenceListener` with the center point, radius, and
-   async callbacks for `onEnter`/`onExit`. Each callback must resolve to `true`
-   when the transition is approved (for example after showing a dialog).
+   async `onEvent`. The provided callback fires for both enter/exit events
+   (inspect `event.entering`) and must resolve to `true` when the movement is
+   approved (for example after showing a dialog).
 2. Create a `DraftModeGeofenceController` with that listener and call
    `startGeofence()` once the app is ready. The controller automatically stores
    the last event via `DraftModeGeofenceStateStorage` so duplicate enter/exit
@@ -30,8 +31,7 @@ for (final region in regions) {
     centerLat: region.lat,
     centerLng: region.lng,
     radiusMeters: region.radiusMeters,
-    onEnter: (event) => handleEnter(region.id, event),
-    onExit: (event) => handleExit(region.id, event),
+    onEvent: (event) => handleRegionEvent(region.id, event),
   );
   await registry.registerFence(fenceId: region.id, listener: listener);
 }
